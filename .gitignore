@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+bridge.log
+bridge.pid
+.venv/
+venv/
+.env
+.env.*
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
