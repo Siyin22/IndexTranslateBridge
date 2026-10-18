@@ -1,13 +1,13 @@
 # Index Translate Bridge
 
-在 Windows 上将陪读蛙、SnowShot 等支持 OpenAI 兼容接口的工具，接入哔哩哔哩 Index-Translate 翻译服务。
+在 Windows 上提供本地 OpenAI Chat Completions 兼容接口，方便浏览器扩展、翻译软件、桌面 AI 客户端及自编写脚本接入哔哩哔哩 Index-Translate 翻译服务。
 
 本项目使用 [Index-Translate 官方提供的 `call_api.py`](https://github.com/bilibili/Index-Translate/blob/main/inference/llm/call_api.py) 作为转接核心，补充后台启动和关闭脚本。无需在本地下载或运行模型，无需安装额外 Python 包。
 
 ## 工作原理
 
 ```text
-陪读蛙 / SnowShot / 其他客户端
+支持 OpenAI Chat Completions 的客户端
               ↓
 本机转接服务 http://127.0.0.1:8080/v1
               ↓
@@ -62,7 +62,9 @@ py -3 -I launch.py
 
 ### 3. 配置客户端
 
-在需要接入的工具中填写：
+客户端需要支持自定义 API 地址、模型 ID，并使用 OpenAI **Chat Completions** 协议。通常可以在设置中找到“自定义服务”“OpenAI 兼容”或“自定义模型”等入口。
+
+添加一个服务，填写以下信息：
 
 | 配置项 | 内容 |
 | --- | --- |
@@ -80,6 +82,10 @@ py -3 -I launch.py
 http://127.0.0.1:8080/v1/chat/completions
 ```
 
+保存后测试连接，并在客户端中选择刚添加的服务或模型。用于翻译时，还需在客户端设置目标语言，或通过提示词提出翻译要求，例如“请将以下文本翻译为简体中文，只输出译文”。
+
+不同客户端的字段名称和功能支持可能不同，实际兼容性取决于其请求格式。下面的具体软件配置仅作为示例。
+
 ### 4. 关闭服务
 
 双击 `Stop-IndexTranslate.cmd`，出现 `Bridge stopped` 表示已关闭。重复关闭会提示服务已停止。
@@ -88,7 +94,11 @@ http://127.0.0.1:8080/v1/chat/completions
 
 关闭后，使用此接口的翻译功能暂停。再次双击启动脚本即可恢复，无需重新配置客户端。电脑重启后也需要重新启动服务；本项目不设置开机自启。
 
-## 陪读蛙配置
+## 客户端配置示例
+
+以下以两款工具说明配置入口，其他支持上述接口的客户端可参照“配置客户端”一节填写。
+
+### 陪读蛙
 
 1. 打开设置，进入 **API 提供商 → 添加提供商**。
 2. 选择 **自定义 Chat Complete**，或使用 Chat Completions 协议的 OpenAI 兼容选项。
@@ -99,7 +109,7 @@ http://127.0.0.1:8080/v1/chat/completions
 
 菜单名称可能随版本变化。模型不在下拉列表时，可以手动填写模型 ID。
 
-## SnowShot 配置
+### SnowShot
 
 1. 在设置中找到 **自定义模型 → 添加模型**。旧版入口可能是 **设置 → 功能设置 → AI 对话 → 添加 API 配置**。
 2. 按上表填写接口信息，若有“推理支持 / 思考模式”选项，先关闭。
@@ -118,7 +128,7 @@ http://127.0.0.1:8080/v1/chat/completions
 
 先区分两种提示：
 
-- `Bridge already running`：表示转接服务已经启动，无需重复启动，也无需改端口。陪读蛙、SnowShot 中的 Base URL 仍填写 `http://127.0.0.1:8080/v1`。
+- `Bridge already running`：表示转接服务已经启动，无需重复启动，也无需改端口。客户端中的 Base URL 仍填写 `http://127.0.0.1:8080/v1`。
 - `Port 8080 is used by another program`：表示 `8080` 端口被其他程序占用，转接服务没有启动。可以给转接服务换一个空闲端口，例如 `8081`，不必关闭其他程序。
 
 **修改端口的方法（以 8081 为例）：**
@@ -126,7 +136,7 @@ http://127.0.0.1:8080/v1/chat/completions
 1. 如果本项目的转接服务正在运行，先双击 `Stop-IndexTranslate.cmd` 关闭它。
 2. 用记事本或代码编辑器打开 `run_bridge.py`，将最后一行的 `port=8080` 改为 `port=8081`，保存。
 3. 打开 `launch.py`，将文件中所有的 `8080` 替换为 `8081`，保存。启动脚本中的检测地址、端口检查和启动提示都需要使用新端口，因此两个文件必须一起修改。
-4. 双击 `Start-IndexTranslate.cmd` 重新启动，并把陪读蛙、SnowShot 等客户端中的 Base URL 改为：
+4. 双击 `Start-IndexTranslate.cmd` 重新启动，并把所有使用此转接服务的客户端中的 Base URL 改为：
 
    ```text
    http://127.0.0.1:8081/v1
@@ -183,7 +193,7 @@ http://127.0.0.1:8080/
 - [陪读蛙](https://github.com/mengxi-ream/read-frog)
 - [SnowShot](https://github.com/mg-chao/snow-apps)
 
-本项目是独立的本地转接工具，非 B 站、陪读蛙或 SnowShot 官方产品。
+本项目是独立的本地转接工具，非 B 站或示例客户端的官方产品。
 
 ## 许可证
 
