@@ -33,7 +33,11 @@ B 站 Index-Translate 官方 API
 
 ### 1. 下载
 
-在 GitHub 仓库页面选择 **Code → Download ZIP**，解压到本地文件夹。请先解压，再运行其中的脚本。
+打开 [最新 Release](https://github.com/Siyin22/IndexTranslateBridge/releases/latest)，在 **Assets（资源）** 中下载名称为 `IndexTranslateBridge-版本号-windows.zip` 的压缩包，解压到本地文件夹。
+
+发布包包含启动、关闭脚本和使用说明，仍需自行安装 Python。请先解压，再运行其中的脚本。
+
+也可以在仓库页面选择 **Code → Download ZIP** 下载源码。
 
 ### 2. 启动服务
 
