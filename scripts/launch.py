@@ -7,6 +7,7 @@ import time
 import urllib.request
 
 folder = Path(__file__).resolve().parent
+runtime = folder.parent / "runtime"
 opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 def ready():
@@ -25,13 +26,14 @@ with socket.socket() as probe:
         print("Port 8080 is used by another program. No changes made.")
         sys.exit(1)
 
-with (folder / "bridge.log").open("ab", buffering=0) as log:
+runtime.mkdir(exist_ok=True)
+with (runtime / "bridge.log").open("ab", buffering=0) as log:
     child = subprocess.Popen(
-        [sys.executable, "-I", "-u", str(folder / "run_bridge.py")],
+        [sys.executable, "-I", "-B", "-u", str(folder / "run_bridge.py")],
         cwd=folder, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
         creationflags=subprocess.CREATE_NO_WINDOW,
     )
-    (folder / "bridge.pid").write_text(str(child.pid), encoding="ascii")
+    (runtime / "bridge.pid").write_text(str(child.pid), encoding="ascii")
 
 for _ in range(30):
     if ready():
@@ -43,5 +45,5 @@ for _ in range(30):
     if child.poll() is not None:
         break
     time.sleep(0.2)
-print("Could not start. See bridge.log in this folder.")
+print("Could not start. See runtime/bridge.log in the project folder.")
 sys.exit(1)

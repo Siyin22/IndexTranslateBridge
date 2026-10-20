@@ -1,8 +1,10 @@
 """Run the official Bilibili bridge, connecting directly to its Chinese endpoint."""
 import importlib.util
 from pathlib import Path
+import sys
 import urllib.request
 
+sys.dont_write_bytecode = True
 urllib.request.install_opener(urllib.request.build_opener(urllib.request.ProxyHandler({})))
 script = Path(__file__).with_name("call_api.py")
 spec = importlib.util.spec_from_file_location("bilibili_official_bridge", script)

@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$bridgePidFile = Join-Path $PSScriptRoot 'bridge.pid'
+$bridgePidFile = Join-Path (Split-Path $PSScriptRoot -Parent) 'runtime/bridge.pid'
 $bridgeScript = Join-Path $PSScriptRoot 'run_bridge.py'
 $bridgeProcess = $null
 

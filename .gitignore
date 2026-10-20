@@ -1,7 +1,6 @@
 __pycache__/
 *.py[cod]
-bridge.log
-bridge.pid
+runtime/
 .venv/
 venv/
 .env

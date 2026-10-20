@@ -55,10 +55,10 @@ Base URL: http://127.0.0.1:8080/v1
 也可以在项目目录的终端中执行：
 
 ```powershell
-py -3 -I launch.py
+py -3 -I scripts\launch.py
 ```
 
-如果安装的 Python 没有 `py` 命令，可改用 `python -I launch.py`。
+如果安装的 Python 没有 `py` 命令，可改用 `python -I scripts\launch.py`。
 
 ### 3. 配置客户端
 
@@ -90,9 +90,27 @@ http://127.0.0.1:8080/v1/chat/completions
 
 双击 `Stop-IndexTranslate.cmd`，出现 `Bridge stopped` 表示已关闭。重复关闭会提示服务已停止。
 
-关闭脚本会根据 PID 文件核对 Python 进程和本文件夹中的 `run_bridge.py` 路径，再停止对应进程。
+关闭脚本会根据 `runtime\bridge.pid` 核对 Python 进程和 `scripts\run_bridge.py` 路径，再停止对应进程。
 
 关闭后，使用此接口的翻译功能暂停。再次双击启动脚本即可恢复，无需重新配置客户端。电脑重启后也需要重新启动服务；本项目不设置开机自启。
+
+## 检查并更新官方脚本
+
+双击 `Update-IndexTranslate.cmd` 检查上游 `call_api.py` 是否有更新。入口优先使用 PowerShell 7，未安装时使用 Windows PowerShell 5.1。
+
+也可以在项目目录的 PowerShell 中运行：
+
+```powershell
+.\scripts\update_call_api.ps1
+```
+
+如果执行策略阻止脚本运行，可使用双击入口；它只为本次运行设置执行策略，不修改系统设置。
+
+发现内容不同时，脚本会显示本地来源和上游提交号。输入 `Y` 后，脚本检查 Python 语法及启动函数参数，再同时更新 `scripts\call_api.py` 和 `THIRD_PARTY_NOTICES.md` 中的来源提交号；回车或输入其他内容则保持现状。仅检查、不询问更新可使用 `.\scripts\update_call_api.ps1 -CheckOnly`。
+
+更新前的两个文件会保存在 `runtime\update-backups\` 下的独立备份文件夹中，写入失败时会尝试自动恢复。脚本不会停止正在运行的服务；更新完成后，先运行关闭入口，再运行启动入口，使新脚本生效。如需回退，停止服务后将同一备份文件夹中的两个文件复制回来，再启动服务。
+
+检查时优先使用本机 `127.0.0.1:7897` 上可用的 HTTP 代理，代理不可用或网络请求失败时尝试直连。每次请求有超时限制，不修改系统代理设置，也不改变翻译服务的直连方式。
 
 ## 客户端配置示例
 
@@ -134,8 +152,8 @@ http://127.0.0.1:8080/v1/chat/completions
 **修改端口的方法（以 8081 为例）：**
 
 1. 如果本项目的转接服务正在运行，先双击 `Stop-IndexTranslate.cmd` 关闭它。
-2. 用记事本或代码编辑器打开 `run_bridge.py`，将最后一行的 `port=8080` 改为 `port=8081`，保存。
-3. 打开 `launch.py`，将文件中所有的 `8080` 替换为 `8081`，保存。启动脚本中的检测地址、端口检查和启动提示都需要使用新端口，因此两个文件必须一起修改。
+2. 用记事本或代码编辑器打开 `scripts\run_bridge.py`，将最后一行的 `port=8080` 改为 `port=8081`，保存。
+3. 打开 `scripts\launch.py`，将文件中所有的 `8080` 替换为 `8081`，保存。启动脚本中的检测地址、端口检查和启动提示都需要使用新端口，因此两个文件必须一起修改。
 4. 双击 `Start-IndexTranslate.cmd` 重新启动，并把所有使用此转接服务的客户端中的 Base URL 改为：
 
    ```text
@@ -162,7 +180,7 @@ http://127.0.0.1:8080/
 
 先确认客户端已经改用 `http://127.0.0.1:8080/v1`，而不是 B 站公网地址。
 
-若转接后仍出现错误，查看 `bridge.log` 中的状态码和客户端报错。`412` 通常表示上游风控拒绝请求，`429` 通常表示请求受到限流；换占位密钥无法解决这些问题。上游服务不可用或访问规则调整时，需要等待恢复或查看官方说明。
+若转接后仍出现错误，查看 `runtime\bridge.log` 中的状态码和客户端报错。`412` 通常表示上游风控拒绝请求，`429` 通常表示请求受到限流；换占位密钥无法解决这些问题。上游服务不可用或访问规则调整时，需要等待恢复或查看官方说明。
 
 ### 是否收费？是否需要代理？
 
@@ -174,16 +192,19 @@ http://127.0.0.1:8080/
 
 | 文件 | 用途 |
 | --- | --- |
-| `call_api.py` | 来自 B 站官方项目的 API 调用及本地转接脚本 |
-| `run_bridge.py` | 加载官方脚本，以直连方式启动本机服务 |
-| `launch.py` | 后台启动服务，记录 PID 和运行日志 |
+| `scripts\call_api.py` | 来自 B 站官方项目的 API 调用及本地转接脚本 |
+| `scripts\run_bridge.py` | 加载官方脚本，以直连方式启动本机服务 |
+| `scripts\launch.py` | 后台启动服务，记录 PID 和运行日志 |
 | `Start-IndexTranslate.cmd` | 双击启动入口，自动查找 Python |
-| `stop_bridge.ps1` | 核对进程身份并关闭服务 |
+| `scripts\stop_bridge.ps1` | 核对进程身份并关闭服务 |
 | `Stop-IndexTranslate.cmd` | 双击关闭入口 |
-| `bridge.log` | 运行时生成的日志 |
-| `bridge.pid` | 运行时生成的进程编号文件 |
+| `Update-IndexTranslate.cmd` | 双击检查更新入口，优先使用 PowerShell 7 |
+| `scripts\update_call_api.ps1` | 检查、确认更新官方脚本并同步来源提交号，兼容 PowerShell 7 / Windows PowerShell 5.1 |
+| `runtime\update-backups\` | 更新前自动生成的备份，不提交到 Git |
+| `runtime\bridge.log` | 运行时生成的日志 |
+| `runtime\bridge.pid` | 运行时生成的进程编号文件 |
 
-上传 GitHub 时，运行产生的 `bridge.log`、`bridge.pid` 和 `__pycache__/` 不需要提交。
+上传 GitHub 时，`runtime\` 下的运行日志、PID、缓存和更新备份不需要提交。
 
 ## 上游项目与参考
 
