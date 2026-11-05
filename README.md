@@ -92,7 +92,29 @@ http://127.0.0.1:8080/v1/chat/completions
 
 关闭脚本会根据 `runtime\bridge.pid` 核对 Python 进程和 `scripts\run_bridge.py` 路径，再停止对应进程。
 
-关闭后，使用此接口的翻译功能暂停。再次双击启动脚本即可恢复，无需重新配置客户端。电脑重启后也需要重新启动服务；本项目不设置开机自启。
+关闭后，使用此接口的翻译功能暂停。再次双击启动脚本即可恢复，无需重新配置客户端。
+
+### 5. 设置 Windows 开机自启动
+
+项目提供 `AutoStart-IndexTranslate.vbs`，可以在当前用户登录 Windows 时静默启动转接服务。它会自动查找 `py.exe` 或 `python.exe`，不依赖某一台电脑上的固定安装路径。请先确认在终端执行 `py -3 --version` 或 `python --version` 正常，再按以下步骤设置：
+
+1. 在项目目录打开 PowerShell。
+2. 执行以下命令，创建启动文件夹中的快捷方式：
+
+   ```powershell
+   $project = (Get-Location).Path
+   $startup = [Environment]::GetFolderPath('Startup')
+   $shell = New-Object -ComObject WScript.Shell
+   $link = $shell.CreateShortcut((Join-Path $startup 'IndexTranslateBridge 自动启动.lnk'))
+   $link.TargetPath = Join-Path $env:WINDIR 'System32\wscript.exe'
+   $link.Arguments = '//nologo "' + (Join-Path $project 'AutoStart-IndexTranslate.vbs') + '"'
+   $link.WorkingDirectory = $project
+   $link.Save()
+   ```
+
+3. 注销或重启 Windows。登录后服务会自动在后台启动，客户端地址仍使用 `http://127.0.0.1:8080/v1`。
+
+如需取消自启动，在运行中执行 `shell:startup`，删除 `IndexTranslateBridge 自动启动.lnk` 即可。服务已经运行时，启动脚本会检测并直接退出，不会重复占用端口。
 
 ## 检查并更新官方脚本
 
@@ -195,7 +217,9 @@ http://127.0.0.1:8080/
 | `scripts\call_api.py` | 来自 B 站官方项目的 API 调用及本地转接脚本 |
 | `scripts\run_bridge.py` | 加载官方脚本，以直连方式启动本机服务 |
 | `scripts\launch.py` | 后台启动服务，记录 PID 和运行日志 |
+| `scripts\autostart.ps1` | 自启动时查找 Python 并调用后台启动入口 |
 | `Start-IndexTranslate.cmd` | 双击启动入口，自动查找 Python |
+| `AutoStart-IndexTranslate.vbs` | 创建启动项后，在 Windows 登录时静默启动服务 |
 | `scripts\stop_bridge.ps1` | 核对进程身份并关闭服务 |
 | `Stop-IndexTranslate.cmd` | 双击关闭入口 |
 | `Update-IndexTranslate.cmd` | 双击检查更新入口，优先使用 PowerShell 7 |
